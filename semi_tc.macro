@@ -1,0 +1,46 @@
+(debug,Changing tool #<_current_tool> to tool #<_selected_tool>)
+#100=#<_x>
+#101=#<_y>
+#102=#<_z>
+#103=#<_spindle_on> 	;saving spindle state
+#104=#<_flood> 			;saving flood state
+#105=#<_mist> 			;saving mist state  
+#106=#5063 				;getting last zprobe 
+(debug, Z offset: #106 )
+G0G53Z-3 				;rapid Z0
+M5 						;stop spindle
+M9 
+G0G53X-430Y-571  		;modified  for semiautotoolchange, front of machine   wait for manual toolChange and resume command
+M0 				 		;modified  for semiautotoolchange, FEED HOLD wait for manual toolChange and resume command
+G0G53X-455.019Y-19.031  ;move to tool setter location
+G38.3F100Z-200 			;fast probe 
+G0Z0.5               	;probe bounce
+G38.3F25Z-2         	;slowProbe
+(debug, Z probe: #5070 )
+O101 if [#5070 EQ 1] 	;check probe is good 
+(debug, Tool Offset: #<_tool_offset> )
+O102 if [#<_tool_offset> EQ 1] ;check offset active 
+(debug, Tool Offset Set: #<_tool_offset> )
+G43.1 Z[#5063-#106] 
+(debug, Tool Offset Value: [#5063-#106] )  	;maybe this is right for atc tool table  ? G10L1P#<_selected_tool>Z[#5063] or G10L1P#<_selected_tool>Z[#5063-#106] ? 
+O102  else
+G43.1 Z[#5063] 								;maybe this is right for atc tool table ?  G10L1P#<_selected_tool>Z[#5063] 
+#106=#5063
+G43.1 Z0
+(debug, Last Probe: #106)
+O102 endif
+O101 endif
+M61Q#<_selected_tool>
+G0G53Z-3
+O201 if [#103 EQ 1] 						;restore spindle status
+M3
+O201 endif
+O202 if [#104 EQ 1] 						;restore flood status
+M8
+O202 endif
+O203 if [#105 EQ 1] 						;restore mist status
+M9
+O203 endif
+G0X#100Y#101
+G0Z#102
+M99
