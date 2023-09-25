@@ -1,0 +1,88 @@
+(debug,Changing tool #<_current_tool> to tool #<_selected_tool>)
+#100=#<_x>
+#101=#<_y>
+#102=#<_z>
+#103=#<_spindle_on> ;saving spindle status in a variable
+#104=#<_flood> ;saving coolant status in a variable
+#105=#<5063> ;getting last zprobe  
+;tool change code here
+G0G53Z0
+M5 ;stop spindle
+M9 ;stop coolant
+O101 if [#<_current_tool> EQ 1]
+G0G53X-339.2Y-53.1 ; move to tool rack position #1
+O101 elseif [#<_current_tool> EQ 2]
+G0G53X-299.2Y-53.1 ; move to tool rack position #2
+O101 elseif [#<_current_tool> EQ 3]
+G0G53X-259.2Y-53.1 ; move to tool rack position #3
+O101 elseif [#<_current_tool> EQ 4]
+G0G53X-219.2Y-53.1 ; move to tool rack position #4
+O101 elseif [#<_current_tool> EQ 5]
+G0G53X-179.1Y-53.1 ; move to tool rack position #5
+O101 elseif [#<_current_tool> EQ 6]
+G0G53X-139.1Y-53.1 ; move to tool rack position #6
+O101 elseif [#<_current_tool> EQ 7]
+G0G53X-99Y-53.1 ; move to tool rack position #7
+O101 elseif [#<_current_tool> EQ 8]
+G0G53X-59Y-53.1 ; move to tool rack position #8
+O101 endif
+G0G53Z-136.5
+M62 P0 ;activates the tool clamp
+M66 P1 L3 Q3 ;waits up to 3 seconds for the tool clamp sensor to read high Open
+O201 if <#5399 EQ -1> ;checks  wait didn't time out
+alarm<47>  ;timeout throw alarm
+M99 ;exit
+O201 endif
+G0G53Z-3 ;retun to alomst z0
+M63 P0 ; deactivates the tool clamp
+M66 P2 L0 Q0
+O202 if<#5399 EQ 0> ;tool holder  LOW stuck in spindle
+alarm<47>  ; throw ATC alarm
+M99 ;exit
+O202 endif
+O301 if [#<_selected_tool> EQ 1]
+G0G53X-339.2Y-53.1 ; move to tool rack position #1
+O301 elseif [#<_selected_tool> EQ 2]
+G0G53X-299.2Y-53.1 ; move to tool rack position #2
+O301 elseif [#<_selected_tool> EQ 3]
+G0G53X-259.2Y-53.1 ; move to tool rack position #3
+O301 elseif [#<_selected_tool> EQ 4]
+G0G53X-219.2Y-53.1 ; move to tool rack position #4
+O301 elseif [#<_selected_tool> EQ 5]
+G0G53X-179.1Y-53.1 ; move to tool rack position #5
+O301 elseif [#<_selected_tool> EQ 6]
+G0G53X-139.1Y-53.1 ; move to tool rack position #6
+O301 elseif [#<_selected_tool> EQ 7]
+G0G53X-99Y-53.1 ; move to tool rack position #7
+O301 elseif [#<_selected_tool> EQ 8]
+G0G53X-59Y-53.1 ; move to tool rack position #8
+O301 endif
+M62 P0 ; activates the tool clamp
+G0G53Z-137
+G04 P2; wait 2 seconds
+M63 P0 ; deactivates the tool clamp
+M66 P2 L3 Q2  ; check  tool holder  High or LOW wait 2
+O401 if<#5399 EQ 1> ; no tool in holder 
+alarm<47>  ; throw ATC alarm
+M99 ;exit
+O401 endif
+M61Q#<_selected_tool> ; this is needed to set the current tool to the selected one
+G53Z0
+
+;tool setter probing IN PROGRESS
+;G0G53X-500Y-150 ; move to setter location
+;G38.3F100Z-200 ;probe 
+;O501 if<#5070 EQ 1>  ;check probe is good 
+;G10L1P#<_selected_tool>Z[#5063-#105] ;setting z offset I guess ? 
+;O501 endif
+;G53Z0
+
+O601 if [#103 EQ 1] ; restore spindle status
+M3
+O601 endif
+O602 if [#104 EQ 1] ; restore coolant status
+M8
+O602 endif
+G0X#100Y#101
+G0Z#102
+M99
