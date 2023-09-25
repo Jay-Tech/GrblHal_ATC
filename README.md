@@ -1,5 +1,5 @@
 # GrblHal_ATC
-Tracking files, drawings and the process of setuping ATC with GrblHAL.
+Tracking files, drawings and setup for ATC with GrblHAL.
 <br><br>
 
 HardWare Requirements 
